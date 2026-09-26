@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StudentHub · Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="index.html"><span class="brand-mark">SH</span> StudentHub</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="courses.html">Courses</a></li>
+      <li><a href="assignments.html">Assignments</a></li>
+      <li><a href="schedule.html">Schedule</a></li>
+      <li><a href="grades.html">Grades</a></li>
+      <li><a href="profile.html">Profile</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle theme">◐</button>
+      <a class="avatar-chip" href="profile.html"><span class="avatar">MC</span><span>Wassim baabaa</span></a>
+      <button class="menu-btn" type="button" aria-label="Open menu">☰</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="kicker">Autumn term 2026</div>
+        <h1>Stay on top of classes, deadlines, and grades.</h1>
+        <p class="lead">StudentHub brings your courses, weekly timetable, assignments, and averages into one calm workspace.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="assignments.html">View deadlines</a>
+          <a class="btn btn-ghost" href="schedule.html">Open this week</a>
+        </div>
+      </div>
+      <aside class="card hero-card">
+        <div>
+          <div class="kicker">Today · Sat 26 Sep</div>
+          <h2>Good evening, wassim</h2>
+          <p class="meta">You have one assignment due today and one overdue HCI report. Saturday is clear on the timetable.</p>
+        </div>
+        <p class="meta">Advisor: Dr. Elena Ruiz · Computer Science, Year 3</p>
+      </aside>
+    </section>
+
+    <section>
+      <div class="panel-head">
+        <h2>Dashboard</h2>
+        <a class="meta" href="grades.html">See full grades →</a>
+      </div>
+      <div class="stat-grid" id="dashboard-stats"></div>
+    </section>
+
+    <section class="split">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Upcoming deadlines</h3>
+          <a href="assignments.html">All tasks</a>
+        </div>
+        <div class="list" id="upcoming-list"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Saturday snapshot</h3>
+          <a href="schedule.html">Weekly view</a>
+        </div>
+        <div class="list" id="today-schedule"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="panel-head">
+        <h2>Featured courses</h2>
+        <a href="courses.html">Browse all</a>
+      </div>
+      <div class="course-grid" id="featured-courses"></div>
+    </section>
+  </main>
+
+  <footer class="footer">StudentHub · a simple student workspace for courses, deadlines, and grades.</footer>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
