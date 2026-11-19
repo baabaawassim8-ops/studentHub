@@ -1,0 +1,109 @@
+name: maison-zitouna
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: artisan
+      POSTGRES_PASSWORD: artisan
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - artisan-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artisan -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  catalogue:
+    build: ./services/catalogue
+    environment:
+      DATABASE_URL: postgresql://artisan:artisan@postgres:5432/catalogue
+      PORT: "5001"
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - artisan-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+
+  commandes:
+    build: ./services/commandes
+    environment:
+      DATABASE_URL: postgresql://artisan:artisan@postgres:5432/commandes
+      CATALOGUE_URL: http://catalogue:5001
+      NOTIFICATIONS_URL: http://notifications:5003
+      PORT: "5002"
+    ports:
+      - "5002:5002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      catalogue:
+        condition: service_healthy
+      notifications:
+        condition: service_healthy
+    networks:
+      - artisan-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5002/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+
+  notifications:
+    build: ./services/notifications
+    environment:
+      DATABASE_URL: postgresql://artisan:artisan@postgres:5432/notifications
+      PORT: "5003"
+    ports:
+      - "5003:5003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - artisan-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5003/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+
+  web:
+    build: ./services/web
+    environment:
+      CATALOGUE_URL: http://catalogue:5001
+      COMMANDES_URL: http://commandes:5002
+      NOTIFICATIONS_URL: http://notifications:5003
+      PORT: "8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      catalogue:
+        condition: service_healthy
+      commandes:
+        condition: service_healthy
+      notifications:
+        condition: service_healthy
+    networks:
+      - artisan-net
+
+volumes:
+  pgdata:
+
+networks:
+  artisan-net:
+    name: artisan-net
+    driver: bridge

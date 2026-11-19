@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construire les images Docker
+        run: docker compose build
+
+      - name: Démarrer les services
+        run: docker compose up -d
+
+      - name: Exécuter le test de bout en bout
+        run: sh scripts/smoke.sh
+
+      - name: Arrêter la pile
+        if: always()
+        run: docker compose down -v
