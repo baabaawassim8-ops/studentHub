@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maison Zitouna</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <div>
+      <h1 class="brand">Maison <span>Zitouna</span></h1>
+      <p>Cosmétiques naturels, huiles essentielles et savons — Tunisie</p>
+    </div>
+    <div class="pill">Catalogue · Commandes · Notifications</div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>Catalogue</h2>
+      <div id="products" class="grid"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Passer une commande</h2>
+      <form id="order-form">
+        <label for="product">Produit</label>
+        <select id="product" required></select>
+        <label for="quantity">Quantité</label>
+        <input id="quantity" type="number" min="1" value="1" required>
+        <label for="name">Nom</label>
+        <input id="name" required placeholder="Amira Ben Ali">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" required placeholder="amira@example.com">
+        <p class="note" id="note"></p>
+        <button type="submit">Confirmer la commande</button>
+      </form>
+    </section>
+
+    <div class="lists">
+      <section class="panel">
+        <h2>Commandes</h2>
+        <ul id="orders"></ul>
+      </section>
+      <section class="panel">
+        <h2>Notifications</h2>
+        <ul id="notifications"></ul>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const productsEl = document.querySelector("#products");
+    const productSelect = document.querySelector("#product");
+    const note = document.querySelector("#note");
+
+    function money(value) {
+      return `${Number(value).toFixed(2)} TND`;
+    }
+
+    async function loadProducts() {
+      const products = await fetch("/api/products").then((r) => r.json());
+      productsEl.innerHTML = "";
+      productSelect.innerHTML = "";
+      products.forEach((product) => {
+        const card = document.createElement("article");
+        card.className = "card";
+        card.innerHTML = `
+          <span class="category"></span>
+          <h3></h3>
+          <p></p>
+          <div class="price"></div>
+          <button type="button">Commander</button>
+        `;
+        card.querySelector(".category").textContent = product.category;
+        card.querySelector("h3").textContent = product.name;
+        card.querySelector("p").textContent = product.description;
+        card.querySelector(".price").textContent = `${money(product.price_tnd)} · stock ${product.stock}`;
+        card.querySelector("button").addEventListener("click", () => {
+          productSelect.value = String(product.id);
+          document.querySelector("#quantity").focus();
+        });
+        productsEl.appendChild(card);
+
+        const option = document.createElement("option");
+        option.value = product.id;
+        option.textContent = `${product.name} (${product.stock} en stock)`;
+        productSelect.appendChild(option);
+      });
+    }
+
+    async function loadOrders() {
+      const orders = await fetch("/api/orders").then((r) => r.json());
+      const list = document.querySelector("#orders");
+      list.innerHTML = "";
+      if (!orders.length) {
+        list.innerHTML = "<li><span>Aucune commande pour le moment.</span></li>";
+        return;
+      }
+      orders.forEach((order) => {
+        const item = document.createElement("li");
+        item.innerHTML = "<strong></strong><span></span>";
+        item.querySelector("strong").textContent =
+          `#${order.id} · ${order.quantity} × ${order.product_name}`;
+        item.querySelector("span").textContent =
+          `${order.customer_name} · ${money(order.total_tnd)} · ${order.status}`;
+        list.appendChild(item);
+      });
+    }
+
+    async function loadNotifications() {
+      const notifications = await fetch("/api/notifications").then((r) => r.json());
+      const list = document.querySelector("#notifications");
+      list.innerHTML = "";
+      if (!notifications.length) {
+        list.innerHTML = "<li><span>Aucune notification envoyée.</span></li>";
+        return;
+      }
+      notifications.forEach((itemData) => {
+        const item = document.createElement("li");
+        item.innerHTML = "<strong></strong><span></span>";
+        item.querySelector("strong").textContent = itemData.subject;
+        item.querySelector("span").textContent = `${itemData.recipient} · ${itemData.status}`;
+        list.appendChild(item);
+      });
+    }
+
+    document.querySelector("#order-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      note.className = "note";
+      note.textContent = "Envoi en cours…";
+      const payload = {
+        product_id: Number(productSelect.value),
+        quantity: Number(document.querySelector("#quantity").value),
+        customer_name: document.querySelector("#name").value.trim(),
+        customer_email: document.querySelector("#email").value.trim()
+      };
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        note.className = "note err";
+        note.textContent = body.error || "La commande a échoué.";
+        return;
+      }
+      note.className = "note ok";
+      note.textContent = `Commande #${body.id} confirmée. Notification #${body.notification_id}.`;
+      await Promise.all([loadProducts(), loadOrders(), loadNotifications()]);
+    });
+
+    Promise.all([loadProducts(), loadOrders(), loadNotifications()]).catch(() => {
+      note.className = "note err";
+      note.textContent = "Impossible de joindre les services.";
+    });
+  </script>
+</body>
+</html>
